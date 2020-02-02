@@ -34,7 +34,21 @@ window *newRootWindow(display *disp, eventMask *myEvent) {
     return myWindow;
 }
 
-window *newSimpleWindow(display *myDisplay, eventMask *myEvent, int x, int y, int width, int height, int borderSize, unsigned long border, unsigned long background) {
+window *createWindow(display *myDisplay, eventMask *myEvent, int x, int y, int width, int height, int borderWidth, int depth, unsigned int class, Visual *visual, unsigned long valuemask, XSetWindowAttributes *attributes) {
+    Display *disp = myDisplay->myDisplay;
+    window *temp = malloc(sizeof (window));
+    temp->myDisplay = myDisplay;
+    temp->myEventMask = myEvent;
+    temp->myWindow = XCreateWindow(disp, getRootWindow(myDisplay), x, y, width, height, borderWidth, depth,  class, visual, valuemask, attributes);
+    temp->myWinAttr=attributes;
+    Atom delWindow = XInternAtom(disp, "WM_DELETE_WINDOW", 0);
+    XSetWMProtocols(disp, temp->myWindow, &delWindow, 1);
+    XMapWindow(disp, temp->myWindow);
+    L_push_back(temp->myDisplay->List_myWindows, sizeof (window), temp);
+    return temp;
+}
+
+window *createSimpleWindow(display *myDisplay, eventMask *myEvent, int x, int y, int width, int height, int borderSize, unsigned long border, unsigned long background) {
     Display *disp = myDisplay->myDisplay;
     window *temp = malloc(sizeof (window));
     temp->myDisplay = myDisplay;

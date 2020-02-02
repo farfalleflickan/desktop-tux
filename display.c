@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 display *newDisplay() {
-    display *new=malloc(sizeof(display));
+    display *new = malloc(sizeof (display));
     new->myDisplay = XOpenDisplay(NULL); // NULL = open defualt display
     if (new->myDisplay == NULL) { // check that we succesfully opened display
         fprintf(stderr, "Cannot open X display!\n");
@@ -18,8 +18,9 @@ display *newDisplay() {
     }
 
     new->myScreen = DefaultScreen(new->myDisplay); // set default screen
-    new->xi_opcode=xi_opcode;
-    new->List_myWindows=newList();
+    new->myVisual = DefaultVisual(new->myDisplay, new->myScreen);
+    new->xi_opcode = xi_opcode;
+    new->List_myWindows = newList();
     return new;
 }
 
@@ -31,7 +32,7 @@ Display *getDisplay(display *disp) {
     return disp->myDisplay;
 }
 
-void flushDisplay(display *disp){
+void flushDisplay(display *disp) {
     XFlush(disp->myDisplay);
 }
 
