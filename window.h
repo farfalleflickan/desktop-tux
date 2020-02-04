@@ -1,17 +1,18 @@
 #pragma once
 #include "display.h"
-#include "eventMask.h"
+#include <X11/extensions/XInput2.h>
 
 typedef struct window {
     Window myWindow;
     display *myDisplay;
-    eventMask *myEventMask;
+    XIEventMask mask;
     XSetWindowAttributes *myWinAttr;
 } window;
 
+void newWindow(display *disp, Window *win);
+void newRootWindow(display *disp,window *win);
+void createWindow(display *myDisplay, window *temp, int x, int y, int width, int height, int borderWidth, int depth, unsigned int class, Visual *visual, unsigned long valuemask, XSetWindowAttributes *attributes);
+void createSimpleWindow(display *display, window *temp, int x, int y, int width, int height, int borderSize, unsigned long border, unsigned long background);
 Window getRootWindow();
-window *newWindow(display *disp, eventMask *myEvent, Window myWindow);
-window *newRootWindow(display *disp, eventMask *myEvent);
-window *createWindow(display *myDisplay, eventMask *myEvent, int x, int y, int width, int height, int borderWidth, int depth, unsigned int class, Visual *visual, unsigned long valuemask, XSetWindowAttributes *attributes);
-window *createSimpleWindow(display *myDisplay, eventMask *myEvent, int x, int y, int width, int height, int borderSize, unsigned long border, unsigned long background);
-void destroyAllDisplayWindows(display *myDisplay);
+void destroyAllDisplayWindows(display *disp);
+void mapWindow(display *disp, window *w);

@@ -3,16 +3,14 @@
 #include <X11/Xutil.h>
 #include "list.h"
 
-typedef struct display{
+typedef struct display {
     Display* myDisplay;
-    List* List_myWindows;
-    int myScreen;
     Visual* myVisual;
-    int xi_opcode;
+    List* List_myWindows;
+    int xi_code, myScreen;
 } display;
 
-display  *newDisplay();
+void newDisplay(display *disp);
 void closeDisplay(display *disp);
-Display *getDisplay(display *disp);
-void drawAllDisplayWindows(display *myDisp);
+void drawAllDisplayWindows(display *disp);
 void flushDisplay(display *disp);

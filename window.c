@@ -3,62 +3,42 @@
 #include <stdlib.h>
 #include "display.h"
 #include "window.h"
-#include "eventMask.h"
 #include "list.h"
 
 Window getRootWindow(display *disp) {
     return DefaultRootWindow(disp->myDisplay);
 }
 
-window *newWindow(display *disp, eventMask *myEvent, Window myWindow) {
-    window *temp = malloc(sizeof (window));
-    temp->myWindow = myWindow;
-    temp->myDisplay = disp;
-    temp->myEventMask = myEvent;
-    return temp;
+void newRootWindow(display *disp, window *win) {
+    win->myWindow = 0;
+    win->myWindow = getRootWindow(disp);
+    win->myDisplay = disp;
+    win->mask.deviceid = XIAllMasterDevices;
+    win->mask.mask_len = XIMaskLen(XI_LASTEVENT);
+    win->mask.mask = calloc(win->mask.mask_len, sizeof (unsigned char));
+    XISetMask(win->mask.mask, XI_RawKeyPress);
+    XISetMask(win->mask.mask, XI_RawKeyRelease);
+    XISetMask(win->mask.mask, XI_RawButtonPress);
+    XISetMask(win->mask.mask, XI_RawButtonRelease);
+    XISetMask(win->mask.mask, XI_RawMotion);
 }
 
-window *newRootWindow(display *disp, eventMask *myEvent) {
-    window *myWindow = malloc(sizeof (window));
-    myWindow->myWindow = 0;
-    myWindow->myWindow = getRootWindow(disp);
-    myWindow->myDisplay = disp;
-    myWindow->myEventMask = myEvent;
-    if (myWindow->myEventMask->init == 0 && myWindow->myWindow != 0) {
-        XISelectEvents(disp->myDisplay, myWindow->myWindow, myEvent->myEventMask, 1);
-        XSync(disp->myDisplay, False);
-        free(myEvent->myEventMask->mask);
-    } else {
-        fprintf(stderr, "Couldn't create a new window!");
-    }
-    return myWindow;
-}
-
-window *createWindow(display *myDisplay, eventMask *myEvent, int x, int y, int width, int height, int borderWidth, int depth, unsigned int class, Visual *visual, unsigned long valuemask, XSetWindowAttributes *attributes) {
+void createWindow(display *myDisplay, window *temp, int x, int y, int width, int height, int borderWidth, int depth, unsigned int class, Visual *visual, unsigned long valuemask, XSetWindowAttributes *attributes) {
     Display *disp = myDisplay->myDisplay;
-    window *temp = malloc(sizeof (window));
     temp->myDisplay = myDisplay;
-    temp->myEventMask = myEvent;
-    temp->myWindow = XCreateWindow(disp, getRootWindow(myDisplay), x, y, width, height, borderWidth, depth,  class, visual, valuemask, attributes);
-    temp->myWinAttr=attributes;
+    temp->myWindow = XCreateWindow(disp, getRootWindow(myDisplay), x, y, width, height, borderWidth, depth, class, visual, valuemask, attributes);
+    temp->myWinAttr = attributes;
     Atom delWindow = XInternAtom(disp, "WM_DELETE_WINDOW", 0);
+    XSelectInput(disp, temp->myWindow, ExposureMask | KeyPressMask | XI_RawMotionMask | StructureNotifyMask | ResizeRedirectMask | PropertyChangeMask);
     XSetWMProtocols(disp, temp->myWindow, &delWindow, 1);
-    XMapWindow(disp, temp->myWindow);
-    L_push_back(temp->myDisplay->List_myWindows, sizeof (window), temp);
-    return temp;
 }
 
-window *createSimpleWindow(display *myDisplay, eventMask *myEvent, int x, int y, int width, int height, int borderSize, unsigned long border, unsigned long background) {
-    Display *disp = myDisplay->myDisplay;
-    window *temp = malloc(sizeof (window));
-    temp->myDisplay = myDisplay;
-    temp->myEventMask = myEvent;
-    temp->myWindow = XCreateSimpleWindow(disp, getRootWindow(myDisplay), x, y, width, height, borderSize, border, background);
+void createSimpleWindow(display *display, window *temp, int x, int y, int width, int height, int borderSize, unsigned long border, unsigned long background) {
+    Display *disp = display->myDisplay;
+    temp->myDisplay = display;
+    temp->myWindow = XCreateSimpleWindow(disp, getRootWindow(display), x, y, width, height, borderSize, border, background);
     Atom delWindow = XInternAtom(disp, "WM_DELETE_WINDOW", 0);
-    XSetWMProtocols(disp, temp->myWindow, &delWindow, 1);
-    XMapWindow(disp, temp->myWindow);
-    L_push_back(temp->myDisplay->List_myWindows, sizeof (window), temp);
-    return temp;
+    XSetWMProtocols(disp, temp->myWindow, &delWindow, 1);    
 }
 
 void destroyAllDisplayWindows(display *myDisplay) {
@@ -69,4 +49,9 @@ void destroyAllDisplayWindows(display *myDisplay) {
         XDestroyWindow(disp, temp->myWindow);
         fprintf(stdout, "%i\n", i);
     }
+}
+
+void mapWindow(display *disp, window *w){
+    L_push_back(disp->List_myWindows, sizeof (w), w);
+    XMapWindow(disp->myDisplay, w->myWindow);
 }

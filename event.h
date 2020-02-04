@@ -4,5 +4,5 @@
 #include "display.h"
 
 void print_rawEvent(XIRawEvent *event);
-int inputLoop(display *disp);
+int inputLoop(display *myDisplay);
 

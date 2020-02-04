@@ -3,39 +3,33 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-display *newDisplay() {
-    display *new = malloc(sizeof (display));
-    new->myDisplay = XOpenDisplay(NULL); // NULL = open defualt display
-    if (new->myDisplay == NULL) { // check that we succesfully opened display
+void newDisplay(display *disp) {
+    disp->myDisplay = XOpenDisplay(NULL); // NULL = open defualt display
+    if (disp->myDisplay == NULL) { // check that we succesfully opened display
         fprintf(stderr, "Cannot open X display!\n");
-        return NULL;
+        exit(1);
     }
 
-    int xi_opcode, queryEvent, queryError; // check if XI2 is available 
-    if (!XQueryExtension(new->myDisplay, "XInputExtension", &xi_opcode, &queryEvent, &queryError)) {
+    int xi_code, queryEvent, queryError; // check if XI2 is available 
+    if (!XQueryExtension(disp->myDisplay, "XInputExtension", &xi_code, &queryEvent, &queryError)) {
         fprintf(stderr, "X Input extension not available\n");
-        return NULL;
+        exit(1);
     }
 
-    new->myScreen = DefaultScreen(new->myDisplay); // set default screen
-    new->myVisual = DefaultVisual(new->myDisplay, new->myScreen);
-    new->xi_opcode = xi_opcode;
-    new->List_myWindows = newList();
-    return new;
+    disp->myScreen = DefaultScreen(disp->myDisplay); // set default screen
+    disp->myVisual = DefaultVisual(disp->myDisplay, disp->myScreen);
+    disp->xi_code = xi_code;
+    disp->List_myWindows = newList();
 }
 
 void closeDisplay(display *disp) {
     XCloseDisplay(disp->myDisplay);
 }
 
-Display *getDisplay(display *disp) {
-    return disp->myDisplay;
-}
-
 void flushDisplay(display *disp) {
     XFlush(disp->myDisplay);
 }
 
-void drawAllDisplayWindows(display *myDisp) {
+void drawAllDisplayWindows(display *disp) {
     // TO DO
 }

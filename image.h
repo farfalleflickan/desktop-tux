@@ -5,11 +5,19 @@
 
 typedef struct image {
     unsigned int width, height;
-    unsigned char * data;
-    XImage *myImage;
-    char* filename;
+    char *data;
+    char **x_data;
+    Pixmap p_map, p_shape; 
+    XImage *x_img, *x_shape;
+    GContext myGC;
+    char filename;
 } image;
 
-image * loadPNG(const char* filename, int width, int height, display *myDisplay);
+void loadPNG(char *filename, int width, int height, display *disp, image *temp);
+void loadXpmToData(char *filename, image *myImage);
+void XpmDataToPixmap(display *disp, window *win, image *img, XpmAttributes *attr);
+void XpmDataToImage(display *disp, image *img, XpmAttributes *attr);
 
 void drawImage(image *img, window *win, display *disp, GC gc, int src_x, int src_y, int x, int y);
+void drawXpm(display *disp, image *img, GC gc, int x, int y);
+void imageInvertAlpha(display *disp, image *img);

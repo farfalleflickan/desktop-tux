@@ -7,6 +7,6 @@ typedef struct LinkedList{
 } List;
 
 List *newList();
-void L_push_back(List *list, int size, void *toAdd);
-int L_getListSize(List *list);
 List *L_getListElem(List *list, int pos);
+int L_getListSize(List *list);
+void L_push_back(List *list, int size, void *toAdd);
