@@ -11,7 +11,7 @@ Once I feel like the overall structure of the program (especially rendering and 
 Current, specific "TO-DO":
 * find a way to display at least _.gif_ (maybe _.mp4_ and/or _.webm_ as well? ) so that the Tux can drag a gif onto the user screen
 * Decide how to implement sound capabilities & start working on them
-* investigaste multiple screen width/height issue (on multiple monitors the physical max height _seems_ to follow the max height of the screen from which the program is started and I haven't found a way to fetch distinguish between single _physical_ monitors) 
+* investigaste multiple screen width/height issue (on multiple monitors the physical max height _seems_ to follow the max height of the screen from which the program is started and I haven't found a way to distinguish between single _physical_ monitors) 
 
 Current overall "plan":
 * Establish a solid foundation of structures and methods that are _working_ , to build up on
