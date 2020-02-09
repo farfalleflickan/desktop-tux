@@ -1,5 +1,5 @@
 # desktop-tux
- WIP [desktop-goose](https://samperson.itch.io/desktop-goose) clone for X11. 
+ WIP [desktop-goose](https://samperson.itch.io/desktop-goose) clone for X11 (currently moving the rendering to OpenGL, I wanted to use Vulkan but decided to go for OpenGL for backwards compatibility). 
  
  Working on getting all the basic mechanics working. Haven't worked with X11/Xlib and documentation is a bit spotty, but I'm figuring it out.  
 
