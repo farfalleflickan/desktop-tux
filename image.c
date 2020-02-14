@@ -27,7 +27,7 @@ void loadPNG(char *filename, int width, int height, display *disp, image *temp) 
     temp->width = width;
     temp->height = height;
 
-    unsigned char *tempdata=0;
+    unsigned char *tempdata = 0;
     if (!error) error = lodepng_decode(&tempdata, &width, &height, &state, png, pngsize);
     if (error) printf("error %u: %s\n", error, lodepng_error_text(error));
     free(png);
@@ -41,13 +41,13 @@ void loadPNG(char *filename, int width, int height, display *disp, image *temp) 
     }
 
     if (NULL == temp->data) {
-        temp->data = malloc(sizeof(unsigned char *)*pngsize);
+        temp->data = malloc(sizeof (unsigned char *)*pngsize);
     }
-    temp->data=tempdata;
+    temp->data = tempdata;
     if (NULL == temp->x_img)
         temp->x_img = malloc(sizeof (XImage));
 
-    temp->x_img = XCreateImage(disp->myDisplay, disp->myVisual, 32, ZPixmap, 0, &temp->data[0], width, height, 32, 0);
+    temp->x_img = XCreateImage(disp->myDisplay, disp->defaultVisual, 32, ZPixmap, 0, &temp->data[0], width, height, 32, 0);
     lodepng_state_cleanup(&state);
 }
 
@@ -56,23 +56,36 @@ void drawImage(image *img, window *win, display *disp, GC gc, int src_x, int src
 }
 
 void drawXpm(display *disp, image *img, GC gc, int x, int y) {
-    
+
 }
 
 void loadXpmToData(char *filename, image *myImage) {
-    if (XpmReadFileToData(filename, &myImage->x_data)) {
-        fprintf(stderr, "Error reading file\n");
-        exit(1);
+    XpmImage image;
+    XpmInfo info;
+    int ErrorStatus;
+
+    info.valuemask = XpmReturnComments | XpmReturnExtensions;
+
+    ErrorStatus = XpmReadFileToXpmImage(filename, &image, &info);
+    if (ErrorStatus == XpmSuccess) {
+        ErrorStatus = XpmCreateDataFromXpmImage(&myImage->x_data, &image, &info);
+        if (ErrorStatus == XpmSuccess) {
+            myImage->width = image.width;
+            myImage->height = image.height;
+        }
     }
+
+    XpmFreeXpmImage(&image);
+    XpmFreeXpmInfo(&info);
 
     strncpy(&myImage->filename, filename, strlen(filename));
 }
 
 void XpmDataToPixmap(display *disp, window *win, image *img, XpmAttributes *attr) {
-/*
-    img->p_map=malloc(sizeof(Pixmap));
-    img->p_shape=malloc(sizeof(Pixmap));
-*/
+    /*
+        img->p_map=malloc(sizeof(Pixmap));
+        img->p_shape=malloc(sizeof(Pixmap));
+     */
     XpmCreatePixmapFromData(disp->myDisplay, win->myWindow, img->x_data, &img->p_map, &img->p_shape, attr);
 }
 

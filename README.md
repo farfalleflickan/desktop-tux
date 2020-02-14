@@ -9,10 +9,12 @@ The recorded footage is 60fps 4480x1080 and shows off the use of both _.xpm_ fil
 Once I feel like the overall structure of the program (especially rendering and input handling) is solid, I will start implementing the "AI" for the Tux/goose/whathaveya.
 
 Current, specific "TO-DO":
-1. implement OpenGL rendering (finally found a way to achieve a transparent window, see [here](https://github.com/datenwolf/codesamples/blob/master/samples/OpenGL/x11xcb_opengl/x11xcb_opengl.c))
+1. display images in OpenGL
 2. find a way to display at least _.gif_ (maybe _.mp4_ and/or _.webm_ as well? ) so that the Tux can drag a gif onto the user screen
-3. Decide how to implement sound capabilities & start working on them
-4. ~investigaste multiple screen width/height issue (on multiple monitors the physical max height _seems_ to follow the max height of the screen from which the program is started and I haven't found a way to distinguish between single _physical_ monitors)~ (issue fixed but not committed, since the rendering will be rewritten I'm going to incorporate this in #1)  
+3. clean up code
+4. Decide how to implement sound capabilities & start working on them
+5. ~implement OpenGL rendering (finally found a way to achieve a transparent window, see [here](https://github.com/datenwolf/codesamples/blob/master/samples/OpenGL/x11xcb_opengl/x11xcb_opengl.c))~
+6. ~investigaste multiple screen width/height issue (on multiple monitors the physical max height _seems_ to follow the max height of the screen from which the program is started and I haven't found a way to distinguish between single _physical_ monitors)~ (issue fixed but not committed, since the rendering will be rewritten I'm going to incorporate this in #5)  
 
 Current overall "plan":
 * Establish a solid foundation of structures and methods that are _working_ , to build up on

@@ -4,6 +4,8 @@
 #include "display.h"
 #include "window.h"
 #include "list.h"
+#include "glxFB.h"
+#include "utils.h"
 
 Window getRootWindow(display *disp) {
     return DefaultRootWindow(disp->myDisplay);
@@ -38,7 +40,7 @@ void createSimpleWindow(display *display, window *temp, int x, int y, int width,
     temp->myDisplay = display;
     temp->myWindow = XCreateSimpleWindow(disp, getRootWindow(display), x, y, width, height, borderSize, border, background);
     Atom delWindow = XInternAtom(disp, "WM_DELETE_WINDOW", 0);
-    XSetWMProtocols(disp, temp->myWindow, &delWindow, 1);    
+    XSetWMProtocols(disp, temp->myWindow, &delWindow, 1);
 }
 
 void destroyAllDisplayWindows(display *myDisplay) {
@@ -51,7 +53,46 @@ void destroyAllDisplayWindows(display *myDisplay) {
     }
 }
 
-void mapWindow(display *disp, window *w){
-    L_push_back(disp->List_myWindows, sizeof (w), w);
+void mapWindow(display *disp, window *w) {
+    L_push_back(disp->List_myWindows, sizeof (&w), w);
     XMapWindow(disp->myDisplay, w->myWindow);
+}
+
+void initGLXWindow(window *win, display *disp, Framebuffer fb) {
+    win->myGLX = glXCreateWindow(disp->myDisplay, fb.fb, win->myWindow, None);
+    if (!win->myGLX) {
+        fatalError("Couldn't create the GLX window\n");
+    }
+
+    int dummy;
+    if (!glXQueryExtension(disp->myDisplay, &dummy, &dummy)) {
+        fatalError("OpenGL not supported by X server\n");
+    }
+    win->renderContext = NULL;
+    if (isExtensionSupported(glXQueryExtensionsString(disp->myDisplay, DefaultScreen(disp->myDisplay)), "GLX_ARB_create_context")) {
+        typedef GLXContext(*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
+        glXCreateContextAttribsARBProc glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc) glXGetProcAddressARB((const GLubyte *) "glXCreateContextAttribsARB");
+        if (glXCreateContextAttribsARB) {
+            int context_attribs[] = {
+                0x2091, 3,
+                0x2092, 0,
+                //GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+                None
+            };
+            win->renderContext  = glXCreateContextAttribsARB(disp->myDisplay, fb.fb, 0, True, context_attribs);
+            XSync(disp->myDisplay, False);
+            if (win->renderContext ) {
+                printf("Created GL 3.0 context\n");
+            }
+        } else {
+            fputs("glXCreateContextAttribsARB could not be retrieved", stderr);
+        }
+    } else {
+        fputs("glXCreateContextAttribsARB not supported", stderr);
+    }
+
+
+    if (!glXMakeContextCurrent(disp->myDisplay, win->myGLX, win->myGLX, win->renderContext )) {
+        fatalError("glXMakeCurrent failed for window\n");
+    }
 }

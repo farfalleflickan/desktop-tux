@@ -1,4 +1,5 @@
-CFLAGS=-O2 -Wall -lX11 -lXi -lXpm -lXext
+CFLAGS=-O2 -Wall -lX11 -lXpm -lXrandr -lXrender -lGL -lm
+
 
 .PHONY : all
 all:
