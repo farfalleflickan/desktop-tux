@@ -32,6 +32,7 @@ void print_rawEvent(XIRawEvent *event) {
     }
 }
 
+
 int inputLoop(display *myDisplay) {
     Display *disp = myDisplay->myDisplay;
     XEvent event;
@@ -56,16 +57,17 @@ int inputLoop(display *myDisplay) {
                         if (NULL != str && strcmp("F12", str) == 0) {
                             return 1;
                         } else if (NULL != str) {
-                            //fprintf(stdout, "%s\n", str);
+                            fprintf(stdout, "%s\n", str);
                         } else {
-                            //fprintf(stderr, "Unparsable key!\n");
+                            fprintf(stderr, "Unparsable key!\n");
                         }
                     } else {
-                        //fprintf(stderr, "Unknown key!!\n");
+                        fprintf(stderr, "Unknown key!!\n");
                     }
                     break;
-                }
+                };
                 case XI_RawMotion: {
+/*
                     Window root_ret, child_ret;
                     int root_x, root_y;
                     int win_x, win_y;
@@ -73,14 +75,18 @@ int inputLoop(display *myDisplay) {
                     XIRawEvent *re = cookie->data;
                     XQueryPointer(disp, DefaultRootWindow(disp), &root_ret, &child_ret, &root_x, &root_y, &win_x, &win_y, &mask);
                     fprintf(stdout, "raw %g,%g root %d,%d\n", re->raw_values[0], re->raw_values[1], root_x, root_y);
+*/
                     break;
                 }
                     //case XI_RawButtonRelease:
+/*
                 case XI_RawButtonPress:
                 {
                     XIRawEvent *ev = cookie->data;
+                    fprintf(stdout, "A\n");
                     break;
                 }
+*/
             }
         }
         XFreeEventData(disp, cookie);

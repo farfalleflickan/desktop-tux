@@ -6,11 +6,12 @@
 
 typedef struct window {
     Window myWindow;
-    GLXWindow myGLX;
     GLXContext renderContext;
     display *myDisplay;
     XIEventMask mask;
     XSetWindowAttributes *myWinAttr;
+    char myXID[16];
+    int x, y, width, height;
 } window;
 
 void newWindow(display *disp, Window *win);
@@ -20,4 +21,4 @@ void createSimpleWindow(display *display, window *temp, int x, int y, int width,
 Window getRootWindow();
 void destroyAllDisplayWindows(display *disp);
 void mapWindow(display *disp, window *w);
-void initGLXWindow(window *win, display *disp, Framebuffer fb);
+void initRenderContext(window *win, display *disp, Framebuffer fb);

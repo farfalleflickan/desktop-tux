@@ -1,6 +1,7 @@
 #include <X11/extensions/XInput2.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include "display.h"
 #include "window.h"
 #include "list.h"
@@ -12,35 +13,52 @@ Window getRootWindow(display *disp) {
 }
 
 void newRootWindow(display *disp, window *win) {
-    win->myWindow = 0;
+    win->myXID[0] = '\0';
     win->myWindow = getRootWindow(disp);
     win->myDisplay = disp;
     win->mask.deviceid = XIAllMasterDevices;
     win->mask.mask_len = XIMaskLen(XI_LASTEVENT);
     win->mask.mask = calloc(win->mask.mask_len, sizeof (unsigned char));
     XISetMask(win->mask.mask, XI_RawKeyPress);
-    XISetMask(win->mask.mask, XI_RawKeyRelease);
     XISetMask(win->mask.mask, XI_RawButtonPress);
-    XISetMask(win->mask.mask, XI_RawButtonRelease);
-    XISetMask(win->mask.mask, XI_RawMotion);
+    //XISetMask(win->mask.mask, XI_RawMotion);
+    XISelectEvents(disp->myDisplay, win->myWindow, &win->mask, 1);
+    XSync(disp->myDisplay, False);
+    free(win->mask.mask);
+    win->x = 0;
+    win->y = 0;
+    win->width = 0;
+    win->height = 0;
 }
 
-void createWindow(display *myDisplay, window *temp, int x, int y, int width, int height, int borderWidth, int depth, unsigned int class, Visual *visual, unsigned long valuemask, XSetWindowAttributes *attributes) {
+void createWindow(display *myDisplay, window *win, int x, int y, int width, int height, int borderWidth, int depth, unsigned int class, Visual *visual, unsigned long valuemask, XSetWindowAttributes *attributes) {
     Display *disp = myDisplay->myDisplay;
-    temp->myDisplay = myDisplay;
-    temp->myWindow = XCreateWindow(disp, getRootWindow(myDisplay), x, y, width, height, borderWidth, depth, class, visual, valuemask, attributes);
-    temp->myWinAttr = attributes;
+    win->myXID[0] = '\0';
+    win->myDisplay = myDisplay;
+    win->myWindow = XCreateWindow(disp, getRootWindow(myDisplay), x, y, width, height, borderWidth, depth, class, visual, valuemask, attributes);
+    sprintf(win->myXID, "%li", win->myWindow);
+    win->myWinAttr = attributes;
     Atom delWindow = XInternAtom(disp, "WM_DELETE_WINDOW", 0);
-    XSelectInput(disp, temp->myWindow, ExposureMask | KeyPressMask | XI_RawMotionMask | StructureNotifyMask | ResizeRedirectMask | PropertyChangeMask);
-    XSetWMProtocols(disp, temp->myWindow, &delWindow, 1);
+    //XSelectInput(disp, win->myWindow, ExposureMask | KeyPressMask | XI_RawMotionMask | StructureNotifyMask | ResizeRedirectMask | PropertyChangeMask);
+    XSetWMProtocols(disp, win->myWindow, &delWindow, 1);
+    win->x = x;
+    win->y = y;
+    win->width = width;
+    win->height = height;
 }
 
-void createSimpleWindow(display *display, window *temp, int x, int y, int width, int height, int borderSize, unsigned long border, unsigned long background) {
+void createSimpleWindow(display *display, window *win, int x, int y, int width, int height, int borderSize, unsigned long border, unsigned long background) {
+    win->myXID[0] = '\0';
     Display *disp = display->myDisplay;
-    temp->myDisplay = display;
-    temp->myWindow = XCreateSimpleWindow(disp, getRootWindow(display), x, y, width, height, borderSize, border, background);
+    win->myDisplay = display;
+    win->myWindow = XCreateSimpleWindow(disp, getRootWindow(display), x, y, width, height, borderSize, border, background);
+    sprintf(win->myXID, "%li", win->myWindow);
     Atom delWindow = XInternAtom(disp, "WM_DELETE_WINDOW", 0);
-    XSetWMProtocols(disp, temp->myWindow, &delWindow, 1);
+    XSetWMProtocols(disp, win->myWindow, &delWindow, 1);
+    win->x = x;
+    win->y = y;
+    win->width = width;
+    win->height = height;
 }
 
 void destroyAllDisplayWindows(display *myDisplay) {
@@ -58,41 +76,14 @@ void mapWindow(display *disp, window *w) {
     XMapWindow(disp->myDisplay, w->myWindow);
 }
 
-void initGLXWindow(window *win, display *disp, Framebuffer fb) {
-    win->myGLX = glXCreateWindow(disp->myDisplay, fb.fb, win->myWindow, None);
-    if (!win->myGLX) {
-        fatalError("Couldn't create the GLX window\n");
+void initRenderContext(window *win, display *disp, Framebuffer fb) {
+    win->renderContext = glXCreateContext(disp->myDisplay, fb.visual, NULL, GL_TRUE);     
+    XSync(disp->myDisplay, False);
+    if (win->renderContext) {
+        printf("Created GL 3.0 context\n");
     }
-
-    int dummy;
-    if (!glXQueryExtension(disp->myDisplay, &dummy, &dummy)) {
-        fatalError("OpenGL not supported by X server\n");
-    }
-    win->renderContext = NULL;
-    if (isExtensionSupported(glXQueryExtensionsString(disp->myDisplay, DefaultScreen(disp->myDisplay)), "GLX_ARB_create_context")) {
-        typedef GLXContext(*glXCreateContextAttribsARBProc)(Display*, GLXFBConfig, GLXContext, Bool, const int*);
-        glXCreateContextAttribsARBProc glXCreateContextAttribsARB = (glXCreateContextAttribsARBProc) glXGetProcAddressARB((const GLubyte *) "glXCreateContextAttribsARB");
-        if (glXCreateContextAttribsARB) {
-            int context_attribs[] = {
-                0x2091, 3,
-                0x2092, 0,
-                //GLX_CONTEXT_FLAGS_ARB        , GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
-                None
-            };
-            win->renderContext  = glXCreateContextAttribsARB(disp->myDisplay, fb.fb, 0, True, context_attribs);
-            XSync(disp->myDisplay, False);
-            if (win->renderContext ) {
-                printf("Created GL 3.0 context\n");
-            }
-        } else {
-            fputs("glXCreateContextAttribsARB could not be retrieved", stderr);
-        }
-    } else {
-        fputs("glXCreateContextAttribsARB not supported", stderr);
-    }
-
-
-    if (!glXMakeContextCurrent(disp->myDisplay, win->myGLX, win->myGLX, win->renderContext )) {
+    
+    if (!glXMakeCurrent(disp->myDisplay, win->myWindow, win->renderContext)) {
         fatalError("glXMakeCurrent failed for window\n");
     }
 }

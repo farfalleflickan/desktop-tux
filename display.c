@@ -46,7 +46,7 @@ void newDisplay(display *disp) {
     if (i == 0) {
         disp->numOfScreens = 1;
     } else {
-        disp->numOfScreens = (i-1);
+        disp->numOfScreens = (i - 1);
         /*
                 mapScreenDisplay(disp);
          */
@@ -55,11 +55,11 @@ void newDisplay(display *disp) {
 
 int getCurrentScreen(display *disp, int x, int y) {
     if (disp->numOfScreens > 1) {
-        int temp=disp->numOfScreens;
+        int temp = disp->numOfScreens;
         for (int i = 1; i <= temp; i++) {
             screen *scr = (screen *) L_getListElem(disp->List_myScreen, (i - 1))->data;
             //printf("i:%i\tx:%i\ty:%i\tscr_x:%i\tscr_y:%i\tscr_width:%i\tscr_height:%i\n", i, x, y, scr->x, scr->y, scr->width, scr->height);
-            if ((x >= scr->x && x <= (scr->x+scr->width)) && (y >= scr->y && y <= (scr->y+scr->height))) {
+            if ((x >= scr->x && x <= (scr->x + scr->width)) && (y >= scr->y && y <= (scr->y + scr->height))) {
                 //printf("RETURNED %i\n", i);
                 return i;
             }
@@ -75,6 +75,13 @@ void closeDisplay(display *disp) {
 
 void flushDisplay(display *disp) {
     XFlush(disp->myDisplay);
+}
+
+int isCompositorRunning(Display *dpy, int screen) {
+    char prop_name[20];
+    snprintf(prop_name, 20, "_NET_WM_CM_S%d", screen);
+    Atom prop_atom = XInternAtom(dpy, prop_name, False);
+    return XGetSelectionOwner(dpy, prop_atom) != None;
 }
 
 /*

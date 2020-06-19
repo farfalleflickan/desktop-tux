@@ -17,3 +17,4 @@ void closeDisplay(display *disp);
 void drawAllDisplayWindows(display *disp);
 void flushDisplay(display *disp);
 int getCurrentScreen(display *disp, int x, int y);
+int isCompositorRunning(Display *dpy, int screen);
