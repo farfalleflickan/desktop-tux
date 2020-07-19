@@ -52,7 +52,6 @@ void loadTexture(texture *tex, char* fileName) {
 
 void renderTexture(texture *tex, int x, int y) {
     glPushMatrix();
-    glClear(GL_COLOR_BUFFER_BIT);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glBindTexture(GL_TEXTURE_2D, tex->myTexture);
     glBegin(GL_QUADS);

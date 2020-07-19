@@ -8,6 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
 #include "display.h"
 #include "window.h"
 #include "event.h"
@@ -35,10 +37,35 @@ int main(int argc, char * argv[]) {
 
     display disp;
     newDisplay(&disp);
-    if (isCompositorRunning(disp.myDisplay, 0) != 1)
+    if (isCompositorRunning(disp.myDisplay, 0) != 1){
         fatalError("No compositor running!");
+	}
 
-    window root, goose, myGIF;
+	//Initialize SDL
+	if( SDL_Init( SDL_INIT_AUDIO ) < 0 ){
+		printf( "SDL could not initialize! SDL Error: %s\n", SDL_GetError() );
+		exit(666);
+	}
+	if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0) {
+		printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+        exit(666);
+    }
+	
+	//The music that will be played
+	Mix_Music *gMusic = NULL;
+	Mix_Chunk *gBounce = NULL;
+	gMusic = Mix_LoadMUS( "data/test.mp3" );
+	if( gMusic == NULL ){
+        printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
+        exit(666);
+    }
+	gBounce = Mix_LoadWAV("data/rebound.ogg");
+	if( gBounce == NULL ){
+        printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
+        exit(666);
+    }
+
+    window root, goose;
     newRootWindow(&disp, &root);
 
     int visAttr[] = {
@@ -52,6 +79,7 @@ int main(int argc, char * argv[]) {
         GLX_DEPTH_SIZE, 24,
         None
     };
+
     XSetWindowAttributes attr;
     int attr_mask;
     float speed = 5;
@@ -70,26 +98,25 @@ int main(int argc, char * argv[]) {
     attr_mask = CWColormap | CWBorderPixel | CWOverrideRedirect; //CWColormap | CWBorderPixel | CWEventMask | CWOverrideRedirect; //attr.event_mask = StructureNotifyMask | EnterWindowMask | LeaveWindowMask | ExposureMask | ButtonPressMask | ButtonReleaseMask | OwnerGrabButtonMask | KeyPressMask | KeyReleaseMask;
 
     createWindow(&disp, &goose, 0, 0, disp.disp_width, disp.disp_height, 0, fb.visual->depth, InputOutput, fb.visual->visual, attr_mask, &attr);
-    createWindow(&disp, &myGIF, 1500, 200, 200, 200, 0, gifFB.visual->depth, InputOutput, gifFB.visual->visual, attr_mask, &attr);
+    //createWindow(&disp, &myGIF, 1500, 200, 128, 128, 0, gifFB.visual->depth, InputOutput, gifFB.visual->visual, attr_mask, &attr);
 
     initRenderContext(&goose, &disp, fb);
     mapWindow(&disp, &goose);
 
-    texture Tux;
+    texture Tux, pal;
     loadTexture(&Tux, "data/test.png");
+    loadTexture(&pal, "data/palette.png");
     glViewport(0, 0, disp.disp_width, disp.disp_height);
     glOrtho(0, disp.disp_width, disp.disp_height, 0, -1, 1);
-
     // Makes input go through the window
     XserverRegion region = XFixesCreateRegion(disp.myDisplay, NULL, 0);
     XFixesSetWindowShapeRegion(disp.myDisplay, goose.myWindow, ShapeBounding, 0, 0, 0);
     XFixesSetWindowShapeRegion(disp.myDisplay, goose.myWindow, ShapeInput, 0, 0, region);
     XFixesDestroyRegion(disp.myDisplay, region);
-
+/*
     initRenderContext(&myGIF, &disp, gifFB);
     mapWindow(&disp, &myGIF);
     glXMakeCurrent(disp.myDisplay, myGIF.myWindow, myGIF.renderContext);
-
     mpv_handle *mpv = mpv_create();
     if (!mpv)
        fatalError("context init failed");
@@ -114,10 +141,14 @@ int main(int argc, char * argv[]) {
 
     const char *cmd[] = {"loadfile", "data/parrot.mp4", NULL};
     mpv_command_async(mpv, 0, cmd);
-
+	*/
     uint64_t startTime = getTimeMS();
     unsigned long newTime = 0;
     for (int i = 0; exitStatus == 0; i++) {
+		if( Mix_PlayingMusic() == 0 ) {
+			//Play the music
+            Mix_PlayMusic( gMusic, -1 );
+        }
         exitStatus = inputLoop(&disp);
 
         int i_x = x, i_y = y;
@@ -128,7 +159,7 @@ int main(int argc, char * argv[]) {
         screen *scr = (screen *) L_getListElem(disp.List_myScreen, (currentScrNum - 1))->data;
         int currentScrHeight = scr->height;
         startTime = getTimeMS();
-
+/*
         XMoveWindow(disp.myDisplay, myGIF.myWindow, x, y);
         glXMakeCurrent(disp.myDisplay, myGIF.myWindow, myGIF.renderContext);
 
@@ -141,16 +172,31 @@ int main(int argc, char * argv[]) {
         mpv_render_context_update(mpv_gl);
         mpv_render_context_render(mpv_gl, params);
         glXSwapBuffers(disp.myDisplay, myGIF.myWindow);
-        glXMakeCurrent(disp.myDisplay, goose.myWindow, goose.renderContext);
+*/
+		glXMakeCurrent(disp.myDisplay, goose.myWindow, goose.renderContext);
+    	glClear(GL_COLOR_BUFFER_BIT);
+        glPushMatrix();
+    	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); // Disable antialiasing
+	    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); // 
+		glBindTexture(GL_TEXTURE_2D, pal.myTexture);
+	    glBegin(GL_QUADS);
+    	glTexCoord2f(0, 0); glVertex2f(0, 0);
+	    glTexCoord2f(1, 0); glVertex2f(200, 0);
+    	glTexCoord2f(1, 1); glVertex2f(200, 200);
+	    glTexCoord2f(0, 1); glVertex2f(0, 200);
+    	glEnd();
+	    glPopMatrix();
         renderTexture(&Tux, i_x, i_y);
-        glXSwapBuffers(disp.myDisplay, goose.myWindow);
+		glXSwapBuffers(disp.myDisplay, goose.myWindow);
         flushDisplay(&disp);
         x += speed;
         y += direction;
         if ((y + Tux.height) >= currentScrHeight) {
             direction = -speed;
+			Mix_PlayChannel( -1, gBounce, 0 );
         } else if (y <= 0) {
             direction = speed;
+			Mix_PlayChannel( -1, gBounce, 0 );
         }
         if (x > disp.disp_width) {
             x = (int) -(Tux.width / 2);
@@ -162,6 +208,8 @@ int main(int argc, char * argv[]) {
         }
         newTime = startTime;
     }
+	Mix_FreeMusic(gMusic);
+	Mix_FreeChunk(gBounce);
     destroyAllDisplayWindows(&disp);
     closeDisplay(&disp);
     return 0;
