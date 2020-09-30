@@ -26,13 +26,13 @@ void newDisplay(display *disp) {
     disp->xi_code = xi_code;
     disp->List_myWindows = newList();
     disp->List_myScreen = newList();
-    int i;
-    for (i = 0; i < xorg->noutput; i++) {
+    int numDisplays=0;
+    for (int i = 0; i < xorg->noutput; i++) {
         XRROutputInfo *output = XRRGetOutputInfo(disp->myDisplay, xorg, xorg->outputs[i]);
         if (output->crtc) {
             XRRCrtcInfo *crtc = XRRGetCrtcInfo(disp->myDisplay, xorg, output->crtc);
             screen *scr = malloc(sizeof (screen));
-            scr->num = i;
+            scr->num = numDisplays;
             scr->x = crtc->x;
             scr->y = crtc->y;
             scr->width = crtc->width;
@@ -40,16 +40,15 @@ void newDisplay(display *disp) {
             //printf("%i\t%i\t%i\t%i\t%i\n", scr->num, scr->x, scr->y, scr->width, scr->height);
             L_push_back(disp->List_myScreen, sizeof (screen), scr);
             XRRFreeCrtcInfo(crtc);
+			numDisplays++;
         }
         XRRFreeOutputInfo(output);
     }
-    if (i == 0) {
+    if (numDisplays == 0) {
         disp->numOfScreens = 1;
     } else {
-        disp->numOfScreens = (i - 1);
-        /*
-                mapScreenDisplay(disp);
-         */
+        disp->numOfScreens = numDisplays;
+        //mapScreenDisplay(disp);
     }
 }
 
