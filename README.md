@@ -22,3 +22,6 @@ Current overall "plan":
 * Customizable sound effects in both _.mp3_ and _.ogg_
 * Different behaviors that are independent from one another so that you can toggle whatever you want
 * Customizable typed messages
+
+You like my work? Feel free to donate :)  
+[<img src="https://raw.githubusercontent.com/andreostrovsky/donate-with-paypal/master/dark.svg" alt="donation" width="150"/>](https://www.paypal.com/donate?hosted_button_id=YEAQ4WGKJKYQQ)
