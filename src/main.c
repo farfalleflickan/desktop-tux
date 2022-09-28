@@ -18,12 +18,12 @@
 #include "texture.h"
 
 int printUsage() {
-    printf("TBD");
+    printf("TBD\n");
     exit(0);
 }
 
 static void *get_proc_address_mpv(void *fn_ctx, const char *name) {
-    return (void *) glXGetProcAddressARB((const GLubyte *) name);
+    return glXGetProcAddressARB((const GLubyte *) name);
 }
 
 int main(int argc, char * argv[]) {
@@ -38,7 +38,7 @@ int main(int argc, char * argv[]) {
     display disp;
     newDisplay(&disp);
     if (isCompositorRunning(disp.myDisplay, 0) != 1){
-        fatalError("No compositor running!");
+        fatalError("No compositor running!\n");
 	}
 
 	//Initialize SDL
@@ -65,7 +65,7 @@ int main(int argc, char * argv[]) {
         exit(666);
     }
 
-    window root, goose;
+    window root, goose, myGIF;
     newRootWindow(&disp, &root);
 
     int visAttr[] = {
@@ -98,7 +98,7 @@ int main(int argc, char * argv[]) {
     attr_mask = CWColormap | CWBorderPixel | CWOverrideRedirect; //CWColormap | CWBorderPixel | CWEventMask | CWOverrideRedirect; //attr.event_mask = StructureNotifyMask | EnterWindowMask | LeaveWindowMask | ExposureMask | ButtonPressMask | ButtonReleaseMask | OwnerGrabButtonMask | KeyPressMask | KeyReleaseMask;
 
     createWindow(&disp, &goose, 0, 0, disp.disp_width, disp.disp_height, 0, fb.visual->depth, InputOutput, fb.visual->visual, attr_mask, &attr);
-    //createWindow(&disp, &myGIF, 1500, 200, 128, 128, 0, gifFB.visual->depth, InputOutput, gifFB.visual->visual, attr_mask, &attr);
+    createWindow(&disp, &myGIF, 1500, 200, 128, 128, 0, gifFB.visual->depth, InputOutput, gifFB.visual->visual, attr_mask, &attr);
 
     initRenderContext(&goose, &disp, fb);
     mapWindow(&disp, &goose);
@@ -113,7 +113,7 @@ int main(int argc, char * argv[]) {
     XFixesSetWindowShapeRegion(disp.myDisplay, goose.myWindow, ShapeBounding, 0, 0, 0);
     XFixesSetWindowShapeRegion(disp.myDisplay, goose.myWindow, ShapeInput, 0, 0, region);
     XFixesDestroyRegion(disp.myDisplay, region);
-/*
+
     initRenderContext(&myGIF, &disp, gifFB);
     mapWindow(&disp, &myGIF);
     glXMakeCurrent(disp.myDisplay, myGIF.myWindow, myGIF.renderContext);
@@ -123,6 +123,7 @@ int main(int argc, char * argv[]) {
 
     mpv_set_option_string(mpv, "vo", "x11");
     mpv_set_option_string(mpv, "wid", myGIF.myXID);
+    mpv_set_option_string(mpv, "loop-file", "inf");
 
     if (mpv_initialize(mpv) < 0)
        fatalError("mpv init failed");
@@ -141,10 +142,10 @@ int main(int argc, char * argv[]) {
 
     const char *cmd[] = {"loadfile", "data/parrot.mp4", NULL};
     mpv_command_async(mpv, 0, cmd);
-	*/
+	
     uint64_t startTime = getTimeMS();
     unsigned long newTime = 0;
-    for (int i = 0; exitStatus == 0; i++) {
+    while (exitStatus == 0) {
 		if( Mix_PlayingMusic() == 0 ) {
 			//Play the music
             Mix_PlayMusic( gMusic, -1 );
@@ -159,7 +160,7 @@ int main(int argc, char * argv[]) {
         screen *scr = (screen *) L_getListElem(disp.List_myScreen, (currentScrNum - 1))->data;
         int currentScrHeight = scr->height;
         startTime = getTimeMS();
-/*
+
         XMoveWindow(disp.myDisplay, myGIF.myWindow, x, y);
         glXMakeCurrent(disp.myDisplay, myGIF.myWindow, myGIF.renderContext);
 
@@ -172,7 +173,7 @@ int main(int argc, char * argv[]) {
         mpv_render_context_update(mpv_gl);
         mpv_render_context_render(mpv_gl, params);
         glXSwapBuffers(disp.myDisplay, myGIF.myWindow);
-*/
+
 		glXMakeCurrent(disp.myDisplay, goose.myWindow, goose.renderContext);
     	glClear(GL_COLOR_BUFFER_BIT);
         glPushMatrix();

@@ -46,8 +46,7 @@ int inputLoop(display *myDisplay) {
         if (XGetEventData(disp, cookie) && cookie->type == GenericEvent && cookie->extension == myDisplay->xi_code) {
             switch (cookie->evtype) {
                     //case XI_RawKeyRelease: 
-                case XI_RawKeyPress:
-                {
+                case XI_RawKeyPress: {
                     XIRawEvent *ev = cookie->data;
 
                     // Ask X what it calls that key

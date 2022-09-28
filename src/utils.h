@@ -10,3 +10,4 @@ void fatalError(const char *why);
 int isExtensionSupported(const char *extList, const char *extension);
 int msleep(long msec);
 uint64_t getTimeMS();
+void tryFree(void *ptr);

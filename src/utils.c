@@ -61,3 +61,12 @@ uint64_t getTimeMS() {
     else
         return 0;
 }
+
+
+
+void tryFree(void *ptr){
+    if (ptr!=NULL){
+        free(ptr);
+        ptr=NULL;
+    }
+}

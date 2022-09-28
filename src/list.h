@@ -10,3 +10,4 @@ List *newList();
 List *L_getListElem(List *list, int pos);
 int L_getListSize(List *list);
 void L_push_back(List *list, int size, void *toAdd);
+void freeList(List *list);

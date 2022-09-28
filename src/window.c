@@ -67,6 +67,7 @@ void destroyAllDisplayWindows(display *myDisplay) {
         List *tempList = L_getListElem(myDisplay->List_myWindows, i);
         window *temp = (struct window*) tempList->data;
         XDestroyWindow(disp, temp->myWindow);
+        tempList->data=NULL;
         fprintf(stdout, "%i\n", i);
     }
 }

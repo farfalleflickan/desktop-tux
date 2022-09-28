@@ -1,6 +1,7 @@
 #include <stdlib.h>  
 #include <stdio.h>
 #include "list.h"
+#include "utils.h"
 
 List *newList() {
     List * myList = malloc(sizeof (List));
@@ -44,4 +45,15 @@ List *L_getListElem(List *list, int pos) {
     }
 
     return NULL;
+}
+
+void freeList(List *list) {
+    for (List *temp=list; temp!=NULL; ) {
+        List *tempNext=temp->nextList;
+        tryFree(temp->data);
+        tryFree(temp);
+        temp=tempNext;
+    }
+
+    list=NULL;
 }

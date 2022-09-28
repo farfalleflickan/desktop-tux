@@ -69,6 +69,8 @@ int getCurrentScreen(display *disp, int x, int y) {
 }
 
 void closeDisplay(display *disp) {
+    freeList(disp->List_myWindows);
+    freeList(disp->List_myScreen);
     XCloseDisplay(disp->myDisplay);
 }
 
